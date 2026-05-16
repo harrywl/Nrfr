@@ -9,7 +9,7 @@ on:
       upstreams:
         description: "上游仓库（空格分隔，按优先级排列）"
         required: true
-        default: "Ackites/Nrfr baiyanwu/Nrfr"
+        default: "baiyanwu/Nrfr Ackites/Nrfr"
       branch:
         description: "合并目标分支"
         required: true
@@ -38,7 +38,7 @@ jobs:
       - name: Sync All Upstreams
         run: |
           BASE_BRANCH="${{ inputs.branch || 'master' }}"
-          UPSTREAMS="${{ inputs.upstreams || 'Ackites/Nrfr baiyanwu/Nrfr' }}"
+          UPSTREAMS="${{ inputs.upstreams || 'baiyanwu/Nrfr Ackites/Nrfr' }}"
 
           # 将结果汇总到 GITHUB_OUTPUT
           SUMMARY=""
