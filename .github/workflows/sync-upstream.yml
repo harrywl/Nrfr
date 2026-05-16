@@ -1,0 +1,118 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    # 每月 1 日 UTC 02:00 自动同步
+    - cron: "0 2 1 * *"
+  workflow_dispatch:
+    inputs:
+      upstream:
+        description: "上游仓库"
+        required: true
+        default: "Ackites/Nrfr"
+      branch:
+        description: "合并目标分支"
+        required: true
+        default: "master"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || 'master' }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add Upstream Remote
+        run: |
+          UPSTREAM="${{ inputs.upstream || 'Ackites/Nrfr' }}"
+          echo "Syncing from: $UPSTREAM"
+          git remote add upstream "https://github.com/${UPSTREAM}.git"
+          git remote -v
+
+      - name: Fetch Upstream
+        run: |
+          git fetch upstream
+          git fetch origin
+
+      - name: Check for Upstream Changes
+        id: check
+        run: |
+          BASE_BRANCH="${{ inputs.branch || 'master' }}"
+          # 获取上游默认分支名
+          UPSTREAM_DEFAULT=$(git remote show upstream | grep "HEAD branch" | awk '{print $NF}')
+          echo "Upstream default branch: $UPSTREAM_DEFAULT"
+
+          # 检查是否有新提交
+          BEHIND=$(git rev-list --count "origin/${BASE_BRANCH}..upstream/${UPSTREAM_DEFAULT}" 2>/dev/null || echo 0)
+          echo "behind_count=$BEHIND" >> $GITHUB_OUTPUT
+          echo "upstream_branch=$UPSTREAM_DEFAULT" >> $GITHUB_OUTPUT
+
+          if [ "$BEHIND" -eq 0 ]; then
+            echo "✅ 上游无新变更，无需同步"
+          else
+            echo "🔄 上游有 $BEHIND 个新提交待合并"
+          fi
+
+      - name: Merge Upstream
+        if: steps.check.outputs.behind_count > 0
+        id: merge
+        run: |
+          BASE_BRANCH="${{ inputs.branch || 'master' }}"
+          UPSTREAM_BRANCH="${{ steps.check.outputs.upstream_branch }}"
+
+          # 尝试直接合并
+          if git merge "upstream/${UPSTREAM_BRANCH}" --no-edit; then
+            echo "✅ 合并成功，推送中..."
+            git push origin "${BASE_BRANCH}"
+            echo "status=merged" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ 合并冲突，创建 PR 供人工处理"
+            echo "status=conflict" >> $GITHUB_OUTPUT
+
+            # 创建冲突修复分支
+            CONFLICT_BRANCH="sync/upstream-$(date +%Y%m%d%H%M%S)"
+            git checkout -b "$CONFLICT_BRANCH"
+            git add -A
+            git commit -m "chore: 合并上游变更（包含冲突标记，需人工解决）" || true
+            git push origin "$CONFLICT_BRANCH"
+
+            # 创建 PR
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$CONFLICT_BRANCH" \
+              --title "🔄 上游同步 $(date +%Y-%m-%d) — 需解决冲突" \
+              --body "上游 [Ackites/Nrfr](https://github.com/Ackites/Nrfr) 有 ${{ steps.check.outputs.behind_count }} 个新提交，自动合并时产生冲突，需要人工处理。
+
+## 操作步骤
+1. 在此 PR 中解决冲突（或本地 pull 后解决）
+2. 确认合并后提交
+3. 合并此 PR 完成同步
+
+## 冲突文件
+$(git diff --name-only --diff-filter=U | sed 's/^/- `/;s/$/`/')
+"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync Complete
+        if: steps.merge.outputs.status == 'merged' || steps.check.outputs.behind_count == 0
+        run: |
+          if [ "${{ steps.check.outputs.behind_count }}" -eq 0 ]; then
+            echo "✅ 上游无新变更"
+          else
+            echo "✅ 上游 ${{ steps.check.outputs.behind_count }} 个提交已合并且推送成功"
+          fi
