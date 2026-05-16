@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       upstreams:
-        description: "上游仓库（空格分隔，按优先级排列）"
+        description: "上游仓库（空格分隔）"
         required: true
         default: "baiyanwu/Nrfr Ackites/Nrfr"
       branch:
@@ -39,9 +39,8 @@ jobs:
         run: |
           BASE_BRANCH="${{ inputs.branch || 'master' }}"
           UPSTREAMS="${{ inputs.upstreams || 'baiyanwu/Nrfr Ackites/Nrfr' }}"
-
-          # 将结果汇总到 GITHUB_OUTPUT
           SUMMARY=""
+          NOW=$(date +%s)
 
           for UPSTREAM in $UPSTREAMS; do
             echo ""
@@ -51,30 +50,45 @@ jobs:
 
             REMOTE_NAME="upstream-$(echo "$UPSTREAM" | tr '/' '-')"
 
-            # 添加上游 remote
+            # 添加上游 remote & fetch
             git remote add "$REMOTE_NAME" "https://github.com/${UPSTREAM}.git" 2>/dev/null || true
-            git fetch "$REMOTE_NAME" --quiet 2>&1 || { echo "⚠️ 无法获取 $UPSTREAM，跳过"; continue; }
+            git fetch "$REMOTE_NAME" --quiet 2>&1 || { echo "⚠️ 无法获取 $UPSTREAM，跳过"; SUMMARY="${SUMMARY}- ⚠️ **${UPSTREAM}**: 无法连接，跳过\n"; continue; }
 
             # 获取上游默认分支
             UPSTREAM_BRANCH=$(git remote show "$REMOTE_NAME" | grep "HEAD branch" | awk '{print $NF}')
             echo "  上游默认分支: $UPSTREAM_BRANCH"
 
+            # 获取上游最近提交时间
+            LAST_COMMIT_TIME=$(git log "${REMOTE_NAME}/${UPSTREAM_BRANCH}" -1 --format="%ct" 2>/dev/null || echo "0")
+            LAST_COMMIT_DATE=$(git log "${REMOTE_NAME}/${UPSTREAM_BRANCH}" -1 --format="%ci" 2>/dev/null || echo "unknown")
+
+            # 计算非活跃天数
+            INACTIVE_DAYS=$(( (NOW - LAST_COMMIT_TIME) / 86400 ))
+            echo "  最近提交时间: $LAST_COMMIT_DATE ($INACTIVE_DAYS 天前)"
+
             # 检查差异
             BEHIND=$(git rev-list --count "origin/${BASE_BRANCH}..${REMOTE_NAME}/${UPSTREAM_BRANCH}" 2>/dev/null || echo 0)
 
+            # 如果上游超过 180 天无新提交 → 视为停滞上游，直接跳过
+            if [ "$INACTIVE_DAYS" -gt 180 ] && [ "$BEHIND" -eq 0 ]; then
+              echo "  ⏭️ 上游 $INACTIVE_DAYS 天无新提交，已停滞，跳过"
+              SUMMARY="${SUMMARY}- ⏭️ **${UPSTREAM}**: 停滞 ${INACTIVE_DAYS} 天无新提交\n"
+              continue
+            fi
+
             if [ "$BEHIND" -eq 0 ]; then
               echo "  ✅ $UPSTREAM 无新变更"
-              SUMMARY="${SUMMARY}- ✅ **${UPSTREAM}**: 无变更\n"
+              SUMMARY="${SUMMARY}- ✅ **${UPSTREAM}**: 无新变更\n"
               continue
             fi
 
             echo "  🔄 $UPSTREAM 有 $BEHIND 个新提交待合并"
-            SUMMARY="${SUMMARY}- 🔄 **${UPSTREAM}**: ${BEHIND} commits "
+            SUMMARY="${SUMMARY}- 🔄 **${UPSTREAM}**: ${BEHIND} commits (${INACTIVE_DAYS}d)"
 
             # 尝试合并
             if git merge "${REMOTE_NAME}/${UPSTREAM_BRANCH}" --no-edit -m "chore: 同步上游 ${UPSTREAM} (${BEHIND} commits)"; then
               echo "  ✅ 合并成功"
-              SUMMARY="${SUMMARY}→ ✅ 已合并\n"
+              SUMMARY="${SUMMARY} → ✅ 已合并\n"
             else
               echo "  ⚠️ 合并冲突，创建 PR 供人工处理"
 
@@ -100,14 +114,12 @@ jobs:
 ${CONFLICT_FILES}
 " || echo "  ⚠️ 创建 PR 失败"
 
-              SUMMARY="${SUMMARY}→ ⚠️ [冲突 PR](https://github.com/harrywl/Nrfr/pulls) 已创建\n"
-              # 冲突后回到 master 继续处理下一个 upstream
+              SUMMARY="${SUMMARY} → ⚠️ [冲突 PR](https://github.com/harrywl/Nrfr/pulls) 已创建\n"
               git checkout "$BASE_BRANCH"
               continue
             fi
           done
 
-          # 输出汇总
           echo "summary<<EOF" >> $GITHUB_OUTPUT
           echo -e "$SUMMARY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
