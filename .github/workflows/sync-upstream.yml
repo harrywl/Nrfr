@@ -6,10 +6,10 @@ on:
     - cron: "0 2 1 * *"
   workflow_dispatch:
     inputs:
-      upstream:
-        description: "上游仓库"
+      upstreams:
+        description: "上游仓库（空格分隔，按优先级排列）"
         required: true
-        default: "Ackites/Nrfr"
+        default: "Ackites/Nrfr baiyanwu/Nrfr"
       branch:
         description: "合并目标分支"
         required: true
@@ -35,84 +35,95 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Add Upstream Remote
-        run: |
-          UPSTREAM="${{ inputs.upstream || 'Ackites/Nrfr' }}"
-          echo "Syncing from: $UPSTREAM"
-          git remote add upstream "https://github.com/${UPSTREAM}.git"
-          git remote -v
-
-      - name: Fetch Upstream
-        run: |
-          git fetch upstream
-          git fetch origin
-
-      - name: Check for Upstream Changes
-        id: check
+      - name: Sync All Upstreams
         run: |
           BASE_BRANCH="${{ inputs.branch || 'master' }}"
-          # 获取上游默认分支名
-          UPSTREAM_DEFAULT=$(git remote show upstream | grep "HEAD branch" | awk '{print $NF}')
-          echo "Upstream default branch: $UPSTREAM_DEFAULT"
+          UPSTREAMS="${{ inputs.upstreams || 'Ackites/Nrfr baiyanwu/Nrfr' }}"
 
-          # 检查是否有新提交
-          BEHIND=$(git rev-list --count "origin/${BASE_BRANCH}..upstream/${UPSTREAM_DEFAULT}" 2>/dev/null || echo 0)
-          echo "behind_count=$BEHIND" >> $GITHUB_OUTPUT
-          echo "upstream_branch=$UPSTREAM_DEFAULT" >> $GITHUB_OUTPUT
+          # 将结果汇总到 GITHUB_OUTPUT
+          SUMMARY=""
 
-          if [ "$BEHIND" -eq 0 ]; then
-            echo "✅ 上游无新变更，无需同步"
-          else
-            echo "🔄 上游有 $BEHIND 个新提交待合并"
-          fi
+          for UPSTREAM in $UPSTREAMS; do
+            echo ""
+            echo "═══════════════════════════════════════════════"
+            echo "  正在处理上游: $UPSTREAM"
+            echo "═══════════════════════════════════════════════"
 
-      - name: Merge Upstream
-        if: steps.check.outputs.behind_count > 0
-        id: merge
-        run: |
-          BASE_BRANCH="${{ inputs.branch || 'master' }}"
-          UPSTREAM_BRANCH="${{ steps.check.outputs.upstream_branch }}"
+            REMOTE_NAME="upstream-$(echo "$UPSTREAM" | tr '/' '-')"
 
-          # 尝试直接合并
-          if git merge "upstream/${UPSTREAM_BRANCH}" --no-edit; then
-            echo "✅ 合并成功，推送中..."
-            git push origin "${BASE_BRANCH}"
-            echo "status=merged" >> $GITHUB_OUTPUT
-          else
-            echo "⚠️ 合并冲突，创建 PR 供人工处理"
-            echo "status=conflict" >> $GITHUB_OUTPUT
+            # 添加上游 remote
+            git remote add "$REMOTE_NAME" "https://github.com/${UPSTREAM}.git" 2>/dev/null || true
+            git fetch "$REMOTE_NAME" --quiet 2>&1 || { echo "⚠️ 无法获取 $UPSTREAM，跳过"; continue; }
 
-            # 创建冲突修复分支
-            CONFLICT_BRANCH="sync/upstream-$(date +%Y%m%d%H%M%S)"
-            git checkout -b "$CONFLICT_BRANCH"
-            git add -A
-            git commit -m "chore: 合并上游变更（包含冲突标记，需人工解决）" || true
-            git push origin "$CONFLICT_BRANCH"
+            # 获取上游默认分支
+            UPSTREAM_BRANCH=$(git remote show "$REMOTE_NAME" | grep "HEAD branch" | awk '{print $NF}')
+            echo "  上游默认分支: $UPSTREAM_BRANCH"
 
-            # 创建 PR
-            gh pr create \
-              --base "$BASE_BRANCH" \
-              --head "$CONFLICT_BRANCH" \
-              --title "🔄 上游同步 $(date +%Y-%m-%d) — 需解决冲突" \
-              --body "上游 [Ackites/Nrfr](https://github.com/Ackites/Nrfr) 有 ${{ steps.check.outputs.behind_count }} 个新提交，自动合并时产生冲突，需要人工处理。
+            # 检查差异
+            BEHIND=$(git rev-list --count "origin/${BASE_BRANCH}..${REMOTE_NAME}/${UPSTREAM_BRANCH}" 2>/dev/null || echo 0)
+
+            if [ "$BEHIND" -eq 0 ]; then
+              echo "  ✅ $UPSTREAM 无新变更"
+              SUMMARY="${SUMMARY}- ✅ **${UPSTREAM}**: 无变更\n"
+              continue
+            fi
+
+            echo "  🔄 $UPSTREAM 有 $BEHIND 个新提交待合并"
+            SUMMARY="${SUMMARY}- 🔄 **${UPSTREAM}**: ${BEHIND} commits "
+
+            # 尝试合并
+            if git merge "${REMOTE_NAME}/${UPSTREAM_BRANCH}" --no-edit -m "chore: 同步上游 ${UPSTREAM} (${BEHIND} commits)"; then
+              echo "  ✅ 合并成功"
+              SUMMARY="${SUMMARY}→ ✅ 已合并\n"
+            else
+              echo "  ⚠️ 合并冲突，创建 PR 供人工处理"
+
+              CONFLICT_BRANCH="sync/$(echo "$UPSTREAM" | tr '/' '-')-$(date +%Y%m%d%H%M%S)"
+              git checkout -b "$CONFLICT_BRANCH"
+              git add -A
+              git commit -m "chore: 合并上游变更（包含冲突标记，需人工解决）" || true
+              git push origin "$CONFLICT_BRANCH"
+
+              CONFLICT_FILES=$(git diff --name-only --diff-filter=U | sed 's/^/- `/;s/$/`/' | head -20)
+              gh pr create \
+                --base "$BASE_BRANCH" \
+                --head "$CONFLICT_BRANCH" \
+                --title "🔄 $UPSTREAM 同步 $(date +%Y-%m-%d) — 需解决冲突" \
+                --body "上游 [${UPSTREAM}](https://github.com/${UPSTREAM}) 有 ${BEHIND} 个新提交，自动合并时产生冲突。
 
 ## 操作步骤
-1. 在此 PR 中解决冲突（或本地 pull 后解决）
+1. 在此 PR 中解决冲突
 2. 确认合并后提交
 3. 合并此 PR 完成同步
 
 ## 冲突文件
-$(git diff --name-only --diff-filter=U | sed 's/^/- `/;s/$/`/')
-"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+${CONFLICT_FILES}
+" || echo "  ⚠️ 创建 PR 失败"
 
-      - name: Sync Complete
-        if: steps.merge.outputs.status == 'merged' || steps.check.outputs.behind_count == 0
+              SUMMARY="${SUMMARY}→ ⚠️ [冲突 PR](https://github.com/harrywl/Nrfr/pulls) 已创建\n"
+              # 冲突后回到 master 继续处理下一个 upstream
+              git checkout "$BASE_BRANCH"
+              continue
+            fi
+          done
+
+          # 输出汇总
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Push Merged Changes
         run: |
-          if [ "${{ steps.check.outputs.behind_count }}" -eq 0 ]; then
-            echo "✅ 上游无新变更"
+          BASE_BRANCH="${{ inputs.branch || 'master' }}"
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/${BASE_BRANCH})" ]; then
+            git push origin "${BASE_BRANCH}"
+            echo "✅ 变更已推送到 ${BASE_BRANCH}"
           else
-            echo "✅ 上游 ${{ steps.check.outputs.behind_count }} 个提交已合并且推送成功"
+            echo "ℹ️ 无变更需要推送"
           fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### 📊 同步汇总"
+          echo "${{ steps.sync.outputs.summary }}"
