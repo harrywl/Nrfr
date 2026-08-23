@@ -1,3 +1,58 @@
 <resources>
     <string name="app_name">Nrfr</string>
+    <string name="app_icon">App icon</string>
+    <string name="settings">Settings</string>
+    <string name="open_settings">Open settings</string>
+    <string name="language">Language</string>
+    <string name="about">About</string>
+    <string name="back">Back</string>
+    <string name="choose_language">Choose language</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="language_follow_system">Follow system</string>
+    <!-- Language names are autonyms and must not be translated. -->
+    <string name="language_simplified_chinese" translatable="false">简体中文</string>
+    <string name="language_traditional_chinese" translatable="false">繁體中文</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_japanese" translatable="false">日本語</string>
+    <string name="language_korean" translatable="false">한국어</string>
+    <string name="language_spanish" translatable="false">Español</string>
+
+    <string name="shizuku_permission_required_to_run">Shizuku permission is required</string>
+    <string name="install_and_enable_shizuku">Install and enable Shizuku first</string>
+    <string name="shizuku_permission_required">Shizuku permission required</string>
+    <string name="shizuku_restart_instruction">Install and enable Shizuku, then restart the app</string>
+
+    <string name="sim_config_read_failed">Failed to read SIM configuration</string>
+    <string name="choose_sim_card">Choose SIM card</string>
+    <string name="sim_config">SIM configuration</string>
+    <string name="loading_sim_config">Reading SIM configuration…</string>
+    <string name="no_sim_card">No available SIM card detected</string>
+    <string name="overridden">Overridden</string>
+    <string name="no_override_config">No override</string>
+    <string name="custom">Custom</string>
+    <string name="choose_country_code">Choose country code</string>
+    <string name="custom_country_code_hint">Custom country code (2 letters)</string>
+    <string name="choose_carrier">Choose carrier</string>
+    <string name="custom_carrier_name">Custom carrier name</string>
+    <string name="processing">Processing…</string>
+    <string name="restore_settings">Restore</string>
+    <string name="save_and_apply">Save and apply</string>
+    <string name="settings_restored">Settings restored</string>
+    <string name="restore_failed">Restore failed: %1$s</string>
+    <string name="settings_saved">Settings saved; you may need to apply them again after restarting</string>
+    <string name="save_failed">Save failed: %1$s</string>
+    <string name="country_code">Country code</string>
+    <string name="carrier_name">Carrier name</string>
+
+    <string name="about_feature_intro">Features</string>
+    <string name="about_feature_details">• SIM country-code editor adapted for Android 16\n• Uses Shizuku system capabilities; Root is not required\n• Uses a dual-APK helper to work with Android 16 hidden API restrictions\n• Shows the current configuration and override state for SIM 1 / SIM 2\n• Supports separate country-code settings on dual-SIM devices\n• Saves configuration and restores the current override in one tap</string>
+    <string name="maintenance_info">Maintenance</string>
+    <string name="maintainer">Maintainer: baiyanwu</string>
+    <string name="current_project">Current project: baiyanwu/Nrfr</string>
+    <string name="upstream_project">Upstream project: Ackites/Nrfr</string>
+    <string name="open_source_info">Open source</string>
+    <string name="open_source_description">This project was forked from Ackites/Nrfr and is distributed under the Apache-2.0 License.</string>
+    <string name="view_license">View open-source license</string>
+    <string name="copyright">© 2026 baiyanwu. Released under the Apache-2.0 License.</string>
 </resources>

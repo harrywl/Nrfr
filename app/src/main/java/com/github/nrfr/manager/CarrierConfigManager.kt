@@ -13,6 +13,9 @@ import rikka.shizuku.Shizuku
 import java.io.InputStream
 
 object CarrierConfigManager {
+    const val CONFIG_COUNTRY_CODE = "country_code"
+    const val CONFIG_CARRIER_NAME = "carrier_name"
+
     private const val INSTRUMENTATION_CLASS = "com.github.nrfr.CarrierConfigInstrumentation"
     private const val INSTRUMENTATION_TARGET_PACKAGE = "com.github.nrfr.instrumentationtarget"
     private const val INSTRUMENTATION_RESULT_PREFIX = "INSTRUMENTATION_RESULT: "
@@ -59,13 +62,13 @@ object CarrierConfigManager {
 
             // 获取当前覆盖的 SIM 国家码。
             config.getString(AndroidCarrierConfigManager.KEY_SIM_COUNTRY_ISO_OVERRIDE_STRING)?.let {
-                result["国家码"] = it
+                result[CONFIG_COUNTRY_CODE] = it
             }
 
             // 获取当前覆盖的运营商名称。
             if (config.getBoolean(AndroidCarrierConfigManager.KEY_CARRIER_NAME_OVERRIDE_BOOL, false)) {
                 config.getString(AndroidCarrierConfigManager.KEY_CARRIER_NAME_STRING)?.let {
-                    result["运营商名称"] = it
+                    result[CONFIG_CARRIER_NAME] = it
                 }
             }
 
@@ -93,11 +96,11 @@ object CarrierConfigManager {
             val phoneId = currentPhoneId ?: return
             val config = mutableMapOf<String, String>()
             rawValues["sim_country_iso_override_string"]?.takeIf { it.isNotBlank() }?.let {
-                config["国家码"] = it
+                config[CONFIG_COUNTRY_CODE] = it
             }
             if (rawValues["carrier_name_override_bool"] == "true") {
                 rawValues["carrier_name_string"]?.takeIf { it.isNotBlank() }?.let {
-                    config["运营商名称"] = it
+                    config[CONFIG_CARRIER_NAME] = it
                 }
             }
             result[phoneId] = config
