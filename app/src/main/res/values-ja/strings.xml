@@ -34,6 +34,15 @@
     <string name="save_failed">保存に失敗しました：%1$s</string>
     <string name="country_code">国コード</string>
     <string name="carrier_name">通信事業者名</string>
+    <string name="invalid_subscription_id">有効なサブスクリプション ID がありません</string>
+    <string name="carrier_config_override_failed_with_exit_code">通信事業者設定の上書きに失敗しました（終了コード：%1$d）</string>
+    <string name="nrfr_helper_missing">Nrfr helper がありません。同じバージョンの 2 つの APK を再インストールしてください。</string>
+    <string name="persistent_override_reset_not_allowed">このシステムでは以前の永続的な上書きを削除できません。現在のセッションの上書きは削除されました。再起動後に以前の値が戻る場合は、システム権限を持つアプリが必要です。</string>
+    <string name="persistent_override_reset_failed">以前の永続的な上書きを削除できませんでした。現在のセッションの上書きは削除されました。</string>
+    <string name="persistent_override_reset_failed_with_details">以前の永続的な上書きを削除できませんでした。現在のセッションの上書きは削除されました：%1$s</string>
+    <string name="shell_command_failed_with_exit_code">シェルコマンドの実行に失敗しました（終了コード：%1$d）</string>
+    <string name="operation_success_with_warnings">%1$s — %2$s</string>
+    <string name="warning_separator">；</string>
     <string name="about_feature_intro">機能</string>
     <string name="about_feature_details">• Android 16 対応の SIM カード国コード変更ツール\n• Shizuku でシステム機能を利用するため Root 権限は不要\n• 2つの APK helper で Android 16 の Hidden API 制限に対応\n• SIM1 / SIM2 の現在の設定と上書き状態を表示\n• デュアル SIM 端末で個別の国コードを設定可能\n• 設定の保存と現在の上書きのワンタップ復元に対応</string>
     <string name="maintenance_info">メンテナンス情報</string>

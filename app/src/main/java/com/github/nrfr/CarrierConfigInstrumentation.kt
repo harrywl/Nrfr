@@ -3,6 +3,7 @@ package com.github.nrfr
 // Fork 变更说明：本文件为 Ackites/Nrfr fork 新增，用于 Android 16 下通过 UiAutomation 调用运营商配置覆盖。
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Instrumentation
 import android.content.Context
@@ -21,7 +22,7 @@ class CarrierConfigInstrumentation : Instrumentation() {
             HiddenApiBypass.addHiddenApiExemptions("L")
 
             val subId = arguments.getString(ARG_SUB_ID)?.toIntOrNull()
-                ?: throw IllegalArgumentException("缺少有效的 subId")
+                ?: throw IllegalArgumentException(context.getString(R.string.invalid_subscription_id))
             val manager = targetContext.getSystemService(Context.CARRIER_CONFIG_SERVICE)
                     as CarrierConfigManager
 
@@ -87,6 +88,9 @@ class CarrierConfigInstrumentation : Instrumentation() {
         }
     }
 
+    // Android has no public API for carrier-config overrides. The official shell command is
+    // restricted to rooted, non-user builds, so this narrowly scoped hidden-API call is required.
+    @SuppressLint("BlockedPrivateApi")
     private fun invokeOverrideConfig(
         manager: CarrierConfigManager,
         subId: Int,

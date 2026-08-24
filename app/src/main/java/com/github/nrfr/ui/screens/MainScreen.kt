@@ -2,6 +2,7 @@ package com.github.nrfr.ui.screens
 
 // Fork 变更说明：本文件基于 Ackites/Nrfr 修改，增加配置展示、异步写入和弹层性能优化。
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -203,6 +204,7 @@ fun MainScreen(onShowSettings: () -> Unit) {
                                 Toast.makeText(
                                     context,
                                     buildOperationMessage(
+                                        context,
                                         context.getString(R.string.settings_restored),
                                         result.warnings
                                     ),
@@ -254,6 +256,7 @@ fun MainScreen(onShowSettings: () -> Unit) {
                                 Toast.makeText(
                                     context,
                                     buildOperationMessage(
+                                        context,
                                         context.getString(R.string.settings_saved),
                                         result.warnings
                                     ),
@@ -438,12 +441,20 @@ private fun formatConfigSummary(simCard: SimCardInfo): String {
     }
 }
 
-private fun buildOperationMessage(successMessage: String, warnings: List<String>): String {
+private fun buildOperationMessage(
+    context: Context,
+    successMessage: String,
+    warnings: List<String>
+): String {
     if (warnings.isEmpty()) {
         return successMessage
     }
 
-    return "$successMessage，${warnings.joinToString("；")}".take(320)
+    return context.getString(
+        R.string.operation_success_with_warnings,
+        successMessage,
+        warnings.joinToString(context.getString(R.string.warning_separator))
+    ).take(320)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

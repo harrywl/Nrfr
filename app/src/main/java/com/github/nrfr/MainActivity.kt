@@ -24,6 +24,22 @@ class MainActivity : ComponentActivity() {
     private var isShizukuReady by mutableStateOf(false)
     private var currentScreen by mutableStateOf(AppScreen.Main)
 
+    private val requestPermissionResultListener =
+        Shizuku.OnRequestPermissionResultListener { _, grantResult ->
+            isShizukuReady = grantResult == PackageManager.PERMISSION_GRANTED
+            if (!isShizukuReady) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.shizuku_permission_required_to_run),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
+    private val binderReceivedListener = Shizuku.OnBinderReceivedListener {
+        checkShizukuStatus()
+    }
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LanguageManager.wrapContext(newBase))
     }
@@ -44,21 +60,10 @@ class MainActivity : ComponentActivity() {
         checkShizukuStatus()
 
         // 添加 Shizuku 权限监听器
-        Shizuku.addRequestPermissionResultListener { _, grantResult ->
-            isShizukuReady = grantResult == PackageManager.PERMISSION_GRANTED
-            if (!isShizukuReady) {
-                Toast.makeText(
-                    this,
-                    getString(R.string.shizuku_permission_required_to_run),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
+        Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
 
         // 添加 Shizuku 绑定监听器
-        Shizuku.addBinderReceivedListener {
-            checkShizukuStatus()
-        }
+        Shizuku.addBinderReceivedListener(binderReceivedListener)
 
         setContent {
             NrfrTheme {
@@ -116,9 +121,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
+        Shizuku.removeBinderReceivedListener(binderReceivedListener)
         super.onDestroy()
-        Shizuku.removeRequestPermissionResultListener { _, _ -> }
-        Shizuku.removeBinderReceivedListener { }
     }
 
     private enum class AppScreen {

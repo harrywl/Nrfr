@@ -12,6 +12,14 @@ A Shizuku-powered, root-free SIM carrier configuration tool.
 - Follows the system language by default and supports 简体中文, 繁體中文, English, 日本語, 한국어, and Español.
 - Languages can be changed under **Settings → Language**; language names are always displayed in their native form.
 
+### Update (v1.0.4)
+
+- Added a Settings page and in-app language switching, with the system language used by default.
+- Unified versioning and local Release signing for the main app and helper.
+- Stabilized the build toolchain and added the complete Gradle Wrapper and basic unit tests.
+- Removed the desktop client and added automatic dual-APK releases triggered by `v*` tags.
+- See the [changelog](CHANGELOG.md) for complete details.
+
 ## Installation
 
 Android 8 or later is required. [Shizuku](https://github.com/RikkaApps/Shizuku) must also be installed and running.
@@ -35,7 +43,7 @@ Both APKs are required. The helper package is `com.github.nrfr.instrumentationta
 JDK 17 and Gradle 8.9 are required:
 
 ```bash
-gradle :app:testDebugUnitTest :app:assembleDebug :instrumentation-target:assembleDebug
+./gradlew :app:testDebugUnitTest :app:assembleDebug :instrumentation-target:assembleDebug
 ```
 
 Outputs:

@@ -36,7 +36,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve version and changelog
+      - name: Resolve version and release notes
         id: version
         shell: bash
         env:
@@ -56,32 +56,17 @@ jobs:
 
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
 
-          PREVIOUS_TAG="$(git describe --tags --abbrev=0 "${GITHUB_SHA}^" 2>/dev/null || true)"
-          if [[ -n "${PREVIOUS_TAG}" ]]; then
-            RANGE="${PREVIOUS_TAG}..${GITHUB_SHA}"
-          else
-            RANGE="${GITHUB_SHA}"
+          VERSION_HEADER="## ${VERSION}"
+          awk -v header="${VERSION_HEADER}" '
+            index($0, header) == 1 { capture = 1 }
+            capture && /^## / && index($0, header) != 1 { exit }
+            capture { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+
+          if [[ ! -s RELEASE_NOTES.md ]]; then
+            echo "No changelog entry found for ${VERSION}."
+            exit 1
           fi
-
-          ALL_COMMITS="$(git log "${RANGE}" --pretty=format:'%h %s (%an)' | grep -v -E '^[a-f0-9]+ (ci|docs):' || true)"
-          FEAT_COMMITS="$(printf '%s\n' "${ALL_COMMITS}" | grep -E '^[a-f0-9]+ feat:' || true)"
-          FIX_COMMITS="$(printf '%s\n' "${ALL_COMMITS}" | grep -E '^[a-f0-9]+ fix:' || true)"
-          OTHER_COMMITS="$(printf '%s\n' "${ALL_COMMITS}" | grep -v -E '^[a-f0-9]+ (feat|fix):' || true)"
-
-          {
-            if [[ -n "${FEAT_COMMITS}" ]]; then
-              printf '### 功能改进\n%s\n\n' "${FEAT_COMMITS}"
-            fi
-            if [[ -n "${FIX_COMMITS}" ]]; then
-              printf '### 问题修复\n%s\n\n' "${FIX_COMMITS}"
-            fi
-            if [[ -n "${OTHER_COMMITS}" ]]; then
-              printf '### 其他更新\n%s\n' "${OTHER_COMMITS}"
-            fi
-            if [[ -z "${ALL_COMMITS}" ]]; then
-              printf '### 无更新内容\n'
-            fi
-          } > CHANGELOG.md
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -96,13 +81,10 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-version: "8.9"
-          cache-provider: basic
 
       - name: Test and build Android APKs
         run: >-
-          gradle --no-daemon --stacktrace
+          ./gradlew --no-daemon --stacktrace
           :app:testDebugUnitTest
           :app:assembleDebug
           :instrumentation-target:assembleDebug
@@ -133,7 +115,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           target_commitish: ${{ github.sha }}
           prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease || false }}
-          body_path: CHANGELOG.md
+          body_path: RELEASE_NOTES.md
           fail_on_unmatched_files: true
           files: |
             artifacts/nrfr-${{ steps.version.outputs.version }}.apk

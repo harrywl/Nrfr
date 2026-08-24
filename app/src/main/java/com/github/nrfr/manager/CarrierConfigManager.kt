@@ -7,6 +7,7 @@ import android.os.PersistableBundle
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.telephony.CarrierConfigManager as AndroidCarrierConfigManager
+import com.github.nrfr.R
 import com.github.nrfr.model.SimCardInfo
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
@@ -25,7 +26,7 @@ object CarrierConfigManager {
         val simCards = mutableListOf<SimCardInfo>()
         val subId1 = getSubIdForSlot(0)
         val subId2 = getSubIdForSlot(1)
-        val configsByPhoneId = getCurrentConfigsByDumpsys()
+        val configsByPhoneId = getCurrentConfigsByDumpsys(context)
 
         if (subId1 != null) {
             val config1 = configsByPhoneId[0] ?: getCurrentConfigByPublicApi(context, subId1)
@@ -78,15 +79,15 @@ object CarrierConfigManager {
         }
     }
 
-    private fun getCurrentConfigsByDumpsys(): Map<Int, Map<String, String>> {
+    private fun getCurrentConfigsByDumpsys(context: Context): Map<Int, Map<String, String>> {
         return try {
-            parseDumpsysCarrierConfig(runShellCommand("dumpsys carrier_config"))
+            parseDumpsysCarrierConfig(runShellCommand(context, "dumpsys carrier_config"))
         } catch (e: Exception) {
             emptyMap()
         }
     }
 
-    private fun parseDumpsysCarrierConfig(output: String): Map<Int, Map<String, String>> {
+    internal fun parseDumpsysCarrierConfig(output: String): Map<Int, Map<String, String>> {
         val result = mutableMapOf<Int, Map<String, String>>()
         var currentPhoneId: Int? = null
         var readingOverrideConfig = false
@@ -190,7 +191,7 @@ object CarrierConfigManager {
         runCatching {
             overrideCarrierConfig(context, subId, null, persistent = true)
         }.onFailure { error ->
-            warnings.add(formatPersistentResetWarning(error))
+            warnings.add(formatPersistentResetWarning(context, error))
         }
 
         return CarrierConfigOperationResult(warnings)
@@ -226,7 +227,7 @@ object CarrierConfigManager {
         arguments: List<Pair<String, String>>,
         relaunchApp: Boolean
     ): InstrumentationResult {
-        ensureInstrumentationTargetInstalled()
+        ensureInstrumentationTargetInstalled(context)
 
         val instrumentCommand = mutableListOf("am", "instrument", "-w")
         arguments.forEach { (key, value) ->
@@ -266,44 +267,49 @@ object CarrierConfigManager {
                 listOf(output, error)
                     .filter { it.isNotBlank() }
                     .joinToString("\n")
-                    .ifBlank { "执行运营商配置覆盖失败，退出码: $exitCode" }
+                    .ifBlank {
+                        context.getString(
+                            R.string.carrier_config_override_failed_with_exit_code,
+                            exitCode
+                        )
+                    }
             )
         }
 
         return result
     }
 
-    private fun ensureInstrumentationTargetInstalled() {
+    private fun ensureInstrumentationTargetInstalled(context: Context) {
         val output = try {
-            runShellCommand("pm path ${shellQuote(INSTRUMENTATION_TARGET_PACKAGE)}")
-        } catch (e: IllegalStateException) {
-            if (e.message.orEmpty().contains("退出码")) {
-                ""
-            } else {
-                throw e
-            }
+            runShellCommand(context, "pm path ${shellQuote(INSTRUMENTATION_TARGET_PACKAGE)}")
+        } catch (_: IllegalStateException) {
+            ""
         }
         val installed = output.lineSequence().any { it.startsWith("package:") }
 
         if (!installed) {
-            throw IllegalStateException("缺少 Nrfr helper，请通过客户端重新安装 Nrfr")
+            throw IllegalStateException(context.getString(R.string.nrfr_helper_missing))
         }
     }
 
-    private fun formatPersistentResetWarning(error: Throwable): String {
+    private fun formatPersistentResetWarning(context: Context, error: Throwable): String {
         val message = error.message.orEmpty()
         return if (
             message.contains("persistent=true", ignoreCase = true) ||
             message.contains("only can be invoked by system app", ignoreCase = true)
         ) {
-            "当前系统不允许清理旧版持久化覆盖，已清理本次会话覆盖；重启后如旧值恢复，需要系统权限应用处理"
+            context.getString(R.string.persistent_override_reset_not_allowed)
         } else {
             val firstLine = message.lineSequence().firstOrNull().orEmpty().take(120)
-            "旧版持久化覆盖清理失败，已清理本次会话覆盖${firstLine.takeIf { it.isNotBlank() }?.let { ": $it" }.orEmpty()}"
+            if (firstLine.isBlank()) {
+                context.getString(R.string.persistent_override_reset_failed)
+            } else {
+                context.getString(R.string.persistent_override_reset_failed_with_details, firstLine)
+            }
         }
     }
 
-    private fun runShellCommand(command: String): String {
+    private fun runShellCommand(context: Context, command: String): String {
         val process = newShizukuProcess(arrayOf("sh", "-c", command))
         val stdout = StringBuilder()
         val stderr = StringBuilder()
@@ -315,14 +321,16 @@ object CarrierConfigManager {
 
         if (exitCode != 0) {
             throw IllegalStateException(
-                stderr.toString().ifBlank { "执行 shell 命令失败，退出码: $exitCode" }
+                stderr.toString().ifBlank {
+                    context.getString(R.string.shell_command_failed_with_exit_code, exitCode)
+                }
             )
         }
 
         return stdout.toString()
     }
 
-    private fun parseInstrumentationResult(output: String): InstrumentationResult {
+    internal fun parseInstrumentationResult(output: String): InstrumentationResult {
         val values = mutableMapOf<String, String>()
         var code: Int? = null
 
@@ -346,7 +354,7 @@ object CarrierConfigManager {
         return InstrumentationResult(values, code)
     }
 
-    private fun shellQuote(value: String): String {
+    internal fun shellQuote(value: String): String {
         return "'" + value.replace("'", "'\\''") + "'"
     }
 
@@ -369,7 +377,7 @@ object CarrierConfigManager {
         }.apply { start() }
     }
 
-    private data class InstrumentationResult(
+    internal data class InstrumentationResult(
         val values: Map<String, String>,
         val code: Int?
     )

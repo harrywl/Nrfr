@@ -34,6 +34,15 @@
     <string name="save_failed">儲存失敗：%1$s</string>
     <string name="country_code">國家碼</string>
     <string name="carrier_name">電信業者名稱</string>
+    <string name="invalid_subscription_id">缺少有效的訂閱 ID</string>
+    <string name="carrier_config_override_failed_with_exit_code">執行電信業者設定覆寫失敗，結束代碼：%1$d</string>
+    <string name="nrfr_helper_missing">缺少 Nrfr helper，請重新安裝相同版本的兩個 APK。</string>
+    <string name="persistent_override_reset_not_allowed">目前系統不允許清除舊版永久覆寫，已清除本次工作階段覆寫；若重新啟動後舊值恢復，需由具備系統權限的應用程式處理。</string>
+    <string name="persistent_override_reset_failed">清除舊版永久覆寫失敗，已清除本次工作階段覆寫。</string>
+    <string name="persistent_override_reset_failed_with_details">清除舊版永久覆寫失敗，已清除本次工作階段覆寫：%1$s</string>
+    <string name="shell_command_failed_with_exit_code">執行 shell 指令失敗，結束代碼：%1$d</string>
+    <string name="operation_success_with_warnings">%1$s，%2$s</string>
+    <string name="warning_separator">；</string>
     <string name="about_feature_intro">功能介紹</string>
     <string name="about_feature_details">• 適用於 Android 16 的 SIM 卡國家碼修改工具\n• 透過 Shizuku 呼叫系統功能，無需 Root 權限\n• 透過雙 APK helper 相容 Android 16 的隱藏 API 限制\n• 支援查看 SIM1 / SIM2 的目前設定與覆寫狀態\n• 支援雙卡裝置，可分別設定不同國家碼\n• 可儲存設定，也可一鍵還原目前覆寫</string>
     <string name="maintenance_info">維護資訊</string>

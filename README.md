@@ -14,6 +14,14 @@ A Shizuku-powered, root-free SIM carrier configuration tool.
 - 默认跟随系统语言，支持简体中文、繁體中文、English、日本語、한국어和 Español。
 - 在“设置 → 语言”中切换语言；语言名称始终以各自原文显示。
 
+### 更新（v1.0.4）
+
+- 新增设置页面和应用内语言切换，默认跟随系统语言。
+- 主应用与 helper 统一版本及本地 Release 签名配置。
+- 稳定构建工具链，补齐 Gradle Wrapper 和基础单元测试。
+- 删除桌面客户端，使用 `v*` 标签自动构建并发布双 APK。
+- 完整内容见 [更新日志](CHANGELOG.md)。
+
 ## 安装
 
 需要 Android 8 或更高版本，并已安装、启用 [Shizuku](https://github.com/RikkaApps/Shizuku)。
@@ -37,7 +45,7 @@ adb install -r nrfr-v1.0.4.apk
 需要 JDK 17 和 Gradle 8.9：
 
 ```bash
-gradle :app:testDebugUnitTest :app:assembleDebug :instrumentation-target:assembleDebug
+./gradlew :app:testDebugUnitTest :app:assembleDebug :instrumentation-target:assembleDebug
 ```
 
 产物位置：

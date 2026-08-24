@@ -34,6 +34,15 @@
     <string name="save_failed">저장 실패: %1$s</string>
     <string name="country_code">국가 코드</string>
     <string name="carrier_name">이동통신사 이름</string>
+    <string name="invalid_subscription_id">구독 ID가 없거나 올바르지 않습니다</string>
+    <string name="carrier_config_override_failed_with_exit_code">이동통신사 구성 재정의를 적용하지 못했습니다(종료 코드: %1$d)</string>
+    <string name="nrfr_helper_missing">Nrfr helper가 없습니다. 동일한 버전의 APK 두 개를 다시 설치하세요.</string>
+    <string name="persistent_override_reset_not_allowed">현재 시스템에서는 이전 영구 재정의를 제거할 수 없습니다. 현재 세션 재정의는 제거되었습니다. 재시작 후 이전 값이 다시 나타나면 시스템 권한이 있는 앱이 필요합니다.</string>
+    <string name="persistent_override_reset_failed">이전 영구 재정의를 제거하지 못했습니다. 현재 세션 재정의는 제거되었습니다.</string>
+    <string name="persistent_override_reset_failed_with_details">이전 영구 재정의를 제거하지 못했습니다. 현재 세션 재정의는 제거되었습니다: %1$s</string>
+    <string name="shell_command_failed_with_exit_code">셸 명령 실행 실패(종료 코드: %1$d)</string>
+    <string name="operation_success_with_warnings">%1$s — %2$s</string>
+    <string name="warning_separator">"; "</string>
     <string name="about_feature_intro">기능</string>
     <string name="about_feature_details">• Android 16용 SIM 카드 국가 코드 수정 도구\n• Shizuku로 시스템 기능을 사용하며 Root 권한 불필요\n• 두 개의 APK helper로 Android 16 숨김 API 제한 지원\n• SIM1 / SIM2의 현재 구성과 재정의 상태 표시\n• 듀얼 SIM 기기에서 서로 다른 국가 코드 설정 가능\n• 구성을 저장하고 현재 재정의를 한 번에 복원</string>
     <string name="maintenance_info">유지 관리 정보</string>

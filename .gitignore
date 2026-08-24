@@ -11,3 +11,8 @@
 .cxx
 local.properties
 *.log
+
+# Project-local release signing files. Never commit these files.
+/keystore/
+*.jks
+*.keystore

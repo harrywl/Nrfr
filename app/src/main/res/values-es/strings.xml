@@ -34,6 +34,15 @@
     <string name="save_failed">Error al guardar: %1$s</string>
     <string name="country_code">Código de país</string>
     <string name="carrier_name">Nombre del operador</string>
+    <string name="invalid_subscription_id">Falta el ID de suscripción o no es válido</string>
+    <string name="carrier_config_override_failed_with_exit_code">No se pudo aplicar la configuración del operador (código de salida: %1$d)</string>
+    <string name="nrfr_helper_missing">Falta Nrfr helper. Reinstala los dos APK de la misma versión.</string>
+    <string name="persistent_override_reset_not_allowed">Este sistema no permite eliminar la modificación persistente anterior. Se eliminó la modificación de la sesión actual. Si el valor anterior vuelve después de reiniciar, se necesita una aplicación con privilegios del sistema.</string>
+    <string name="persistent_override_reset_failed">No se pudo eliminar la modificación persistente anterior. Se eliminó la modificación de la sesión actual.</string>
+    <string name="persistent_override_reset_failed_with_details">No se pudo eliminar la modificación persistente anterior. Se eliminó la modificación de la sesión actual: %1$s</string>
+    <string name="shell_command_failed_with_exit_code">Error al ejecutar el comando de shell (código de salida: %1$d)</string>
+    <string name="operation_success_with_warnings">%1$s — %2$s</string>
+    <string name="warning_separator">"; "</string>
     <string name="about_feature_intro">Funciones</string>
     <string name="about_feature_details">• Editor del código de país de la SIM adaptado a Android 16\n• Usa funciones del sistema mediante Shizuku, sin necesidad de Root\n• Usa dos APK helper para las restricciones de API ocultas de Android 16\n• Muestra la configuración y el estado de modificación de SIM1 / SIM2\n• Permite configurar códigos distintos en dispositivos con doble SIM\n• Guarda la configuración y restaura la modificación actual con un toque</string>
     <string name="maintenance_info">Mantenimiento</string>

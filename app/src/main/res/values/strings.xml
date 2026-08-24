@@ -44,6 +44,15 @@
     <string name="save_failed">Save failed: %1$s</string>
     <string name="country_code">Country code</string>
     <string name="carrier_name">Carrier name</string>
+    <string name="invalid_subscription_id">Missing or invalid subscription ID</string>
+    <string name="carrier_config_override_failed_with_exit_code">Failed to apply carrier configuration (exit code: %1$d)</string>
+    <string name="nrfr_helper_missing">Nrfr helper is missing. Reinstall both APKs from the same version.</string>
+    <string name="persistent_override_reset_not_allowed">This system does not allow removing the legacy persistent override. The current session override was removed. If the old value returns after a restart, a system-privileged app is required.</string>
+    <string name="persistent_override_reset_failed">Failed to remove the legacy persistent override. The current session override was removed.</string>
+    <string name="persistent_override_reset_failed_with_details">Failed to remove the legacy persistent override. The current session override was removed: %1$s</string>
+    <string name="shell_command_failed_with_exit_code">Shell command failed (exit code: %1$d)</string>
+    <string name="operation_success_with_warnings">%1$s — %2$s</string>
+    <string name="warning_separator">"; "</string>
 
     <string name="about_feature_intro">Features</string>
     <string name="about_feature_details">• SIM country-code editor adapted for Android 16\n• Uses Shizuku system capabilities; Root is not required\n• Uses a dual-APK helper to work with Android 16 hidden API restrictions\n• Shows the current configuration and override state for SIM 1 / SIM 2\n• Supports separate country-code settings on dual-SIM devices\n• Saves configuration and restores the current override in one tap</string>
