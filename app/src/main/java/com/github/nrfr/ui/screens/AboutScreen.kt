@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.github.nrfr.R
@@ -37,16 +38,19 @@ fun AboutScreen(onBack: () -> Unit) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_launcher_foreground),
                             modifier = Modifier.size(48.dp),
-                            contentDescription = "App Icon",
+                            contentDescription = stringResource(R.string.app_icon),
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("关于")
+                        Text(stringResource(R.string.about))
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 }
             )
@@ -74,16 +78,11 @@ fun AboutScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            "功能介绍",
+                            stringResource(R.string.about_feature_intro),
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
-                            "• Android 16 适配版 SIM 卡国家码修改工具\n" +
-                                    "• 基于 Shizuku 调用系统能力，无需 Root 权限\n" +
-                                    "• 通过双 APK helper 兼容 Android 16 的隐藏 API 限制\n" +
-                                    "• 支持查看 SIM1 / SIM2 当前配置和覆盖状态\n" +
-                                    "• 支持双卡设备，可分别配置不同国家码\n" +
-                                    "• 配置可保存，也可一键还原当前覆盖",
+                            stringResource(R.string.about_feature_details),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -93,7 +92,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
                 // 维护信息
                 Text(
-                    "维护信息",
+                    stringResource(R.string.maintenance_info),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Card(
@@ -103,16 +102,16 @@ fun AboutScreen(onBack: () -> Unit) {
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("维护者: baiyanwu")
+                        Text(stringResource(R.string.maintainer))
                         Text(
-                            "当前项目: baiyanwu/Nrfr",
+                            stringResource(R.string.current_project),
                             modifier = Modifier.clickable {
                                 openUrl("https://github.com/baiyanwu/Nrfr")
                             },
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            "上游项目: Ackites/Nrfr",
+                            stringResource(R.string.upstream_project),
                             modifier = Modifier.clickable {
                                 openUrl("https://github.com/Ackites/Nrfr")
                             },
@@ -125,7 +124,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
                 // 开源信息
                 Text(
-                    "开源信息",
+                    stringResource(R.string.open_source_info),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Card(
@@ -136,12 +135,12 @@ fun AboutScreen(onBack: () -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            "本项目 fork 自 Ackites/Nrfr，基于 Apache-2.0 许可证二次开发。",
+                            stringResource(R.string.open_source_description),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
                         Text(
-                            "查看开源许可证",
+                            stringResource(R.string.view_license),
                             color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
@@ -157,7 +156,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
                 // 版权信息
                 Text(
-                    "© 2026 baiyanwu. 基于 Apache-2.0 许可证发布。",
+                    stringResource(R.string.copyright),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
